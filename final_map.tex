@@ -4,8 +4,8 @@
 \usepackage{tikz}
 \usepackage{fontspec}
 \usepackage[english]{babel}
-\usepackage{longtable} % NEW: Required for long tables
-\usepackage{booktabs}  % NEW: For nice table rules (toprule, midrule, bottomrule)
+\usepackage{longtable} 
+\usepackage{booktabs}
 
 % Use Noto Sans for clean, modern look
 \babelfont{rm}{Noto Sans} 
@@ -50,18 +50,21 @@
   % Level 0 node is the central node
   % Root Node is inserted here via string formatting
 
-  \node[concept] { \textbf{Project\\par Phases}}  child[grow=150] {
-    \node[concept] {Planning}    child {
-      \node[concept] {Scope Definition}    child {
-      \node[concept] {Resource Allocation}  } 
-  child[grow=30] {
-    \node[concept] {Execution}    child {
-      \node[concept] {Development}    child {
-      \node[concept] {Testing}  } 
-  child[grow=270] {
-    \node[concept] {Closure}    child {
-      \node[concept] {Review}    child {
-      \node[concept] {Sign-off}} } 
+  \node[concept] { \textbf{Project\\par Phases}}    child[grow=150] {
+        \node[concept] {Planning}        child {
+            \node[concept] {Scope Definition}        } 
+        child {
+            \node[concept] {Resource Allocation}    } } 
+    child[grow=30] {
+        \node[concept] {Execution}        child {
+            \node[concept] {Development}        } 
+        child {
+            \node[concept] {Testing}    } } 
+    child[grow=270] {
+        \node[concept] {Closure}        child {
+            \node[concept] {Review}        } 
+        child {
+            \node[concept] {Sign-off}} } 
   ; % End of the main node structure
 
 \end{tikzpicture}

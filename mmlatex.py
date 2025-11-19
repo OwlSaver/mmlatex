@@ -6,14 +6,12 @@ import math
 # --- Configuration (Used as defaults for CLI) ---
 INPUT_FILE = "map_data.txt"
 OUTPUT_FILE = "project_mindmap.tex"
-INDENT_SPACES = 4 # UPDATED: Number of spaces per indentation level is now 4
+INDENT_SPACES = 4 
 
 # Pre-defined angles for Level 1 branches to ensure an aesthetically pleasing cyclic layout
 LEVEL_1_ANGLES = [150, 30, 270, 210, 90, 330]
 
 # --- LaTeX Template Sections ---
-
-# Note: LATEX_START and LATEX_END now use placeholders for dynamic content.
 
 LATEX_START_TEMPLATE = r"""
 \documentclass[11pt, a4paper]{article}
@@ -21,8 +19,8 @@ LATEX_START_TEMPLATE = r"""
 \usepackage{tikz}
 \usepackage{fontspec}
 \usepackage[english]{babel}
-\usepackage{longtable} % NEW: Required for long tables
-\usepackage{booktabs}  % NEW: For nice table rules (toprule, midrule, bottomrule)
+\usepackage{longtable} 
+\usepackage{booktabs}
 
 % Use Noto Sans for clean, modern look
 \babelfont{rm}{Noto Sans} 
@@ -136,12 +134,12 @@ def generate_tikz_code(lines):
     """Reads the list of lines and generates the TikZ node structure and table data."""
     
     tikz_nodes = []
-    table_data = [] # NEW: Data structure to hold node name and description for the table
+    table_data = [] 
     current_depth = 0 
     angle_index = 0
     
     if not lines:
-        return "", "", "" # Return empty strings if no lines
+        return "", "", "" 
 
     # --- 1. Process Root Node (Line 0) ---
     root_line = lines[0].rstrip()
@@ -149,7 +147,91 @@ def generate_tikz_code(lines):
     table_data.append({'node': root_concept, 'desc': root_description})
     
     # Generate the TikZ root node definition
-    # We use a cleaner text format for the central node (Project \par Phases)
+    # Escape characters for the TikZ node text to prevent other LaTeX errors
+    safe_root = root_concept.replace('&', r'\&').replace('%', r'\%')
+    root_node_definition = f"\n  \\node[concept] {{ \\textbf{{{safe_root.replace(' ', r'\\par ')}}}}}"
+
+    # --- 2. Process Child Nodes (Lines 1 onwards) ---
+    lines_to_process = lines[1:]
+
+    for line in lines_to_process:
+        line = line.rstrip() 
+        if not line.strip():
+            continue 
+
+        raw_depth = get_indentation_level(line)
+        
+        # --- SANITIZATION FIX ---
+        # 1. Force children to be at least level 1 (cannot be siblings to Root)
+        depth = max(1, raw_depth)
+        
+        # 2. Prevent skipping levels (e.g., going from L1 to L3). 
+        #    A child can at most be 1 level deeper than the previous node.
+        if depth > current_depth + 1:
+            depth = current_depth + 1
+        # ------------------------
+
+        concept_text, description = parse_line(line)
+        
+        # Escape special characters for the TikZ diagram text
+        safe_concept = concept_text.replace('&', r'\&').replace('%', r'\%').replace('_', r'\_')
+        
+        table_data.append({'node': concept_text, 'desc': description})
+        
+        # If we are at the same depth or shallower, close previous nodes
+        if depth <= current_depth:
+            brackets_to_close = (current_depth - depth) + 1
+            tikz_nodes.append("    " * depth + "} " * brackets_to_close + "\n")
+        
+        # Open new child
+        if depth == 1:
+            angle = LEVEL_1_ANGLES[angle_index % len(LEVEL_1_ANGLES)]
+            tikz_nodes.append(f"    " * depth + f"child[grow={angle}] {{\n")
+            angle_index += 1
+        else:
+            tikz_nodes.append(f"    " * depth + "child {\n")
+            
+        tikz_nodes.append(f"    " * (depth + 1) + f"\\node[concept] {{{safe_concept}}}")
+            
+        current_depth = depth
+
+    # Close any remaining open child nodes
+    if current_depth > 0:
+        tikz_nodes.append("} " * current_depth) 
+        
+    tikz_code_body = "".join(tikz_nodes)
+    
+    latex_table = generate_latex_table(table_data)
+    
+    full_latex_document = (
+        LATEX_START_TEMPLATE + 
+        root_node_definition + 
+        tikz_code_body + 
+        TIKZ_END +
+        latex_table + 
+        LATEX_END
+    )
+    
+    return full_latex_document
+
+
+def generate_tikz_code_old(lines):
+    """Reads the list of lines and generates the TikZ node structure and table data."""
+    
+    tikz_nodes = []
+    table_data = [] 
+    current_depth = 0 
+    angle_index = 0
+    
+    if not lines:
+        return "", "", "" 
+
+    # --- 1. Process Root Node (Line 0) ---
+    root_line = lines[0].rstrip()
+    root_concept, root_description = parse_line(root_line)
+    table_data.append({'node': root_concept, 'desc': root_description})
+    
+    # Generate the TikZ root node definition
     root_node_definition = f"\n  \\node[concept] {{ \\textbf{{{root_concept.replace(' ', r'\\par ')}}}}}"
 
     # --- 2. Process Child Nodes (Lines 1 onwards) ---
@@ -163,27 +245,31 @@ def generate_tikz_code(lines):
         depth = get_indentation_level(line)
         concept_text, description = parse_line(line)
         
-        # Collect data for the table
         table_data.append({'node': concept_text, 'desc': description})
         
-        # If we encounter a shallower level, close the previous child nodes
-        if depth < current_depth:
-            levels_to_pop = current_depth - depth
-            tikz_nodes.append("  " * depth + "} " * levels_to_pop + "\n")
+        # --- LOGIC FIX STARTS HERE ---
+        # If we are at the same depth (sibling) or shallower (uncle/aunt), 
+        # we must close the previous child node(s).
+        if depth <= current_depth:
+            # The number of braces to close is the difference in levels + 1 
+            # (The +1 closes the specific node we were just in)
+            brackets_to_close = (current_depth - depth) + 1
+            tikz_nodes.append("    " * depth + "} " * brackets_to_close + "\n")
+        # --- LOGIC FIX ENDS HERE ---
         
         # Determine the appropriate opening structure
         if depth > 0:
             # For Level 1, apply the custom grow angle
             if depth == 1:
                 angle = LEVEL_1_ANGLES[angle_index % len(LEVEL_1_ANGLES)]
-                tikz_nodes.append(f"  " * depth + f"child[grow={angle}] {{\n")
+                tikz_nodes.append(f"    " * depth + f"child[grow={angle}] {{\n")
                 angle_index += 1
             else:
                 # For deeper levels, just use the standard child command
-                tikz_nodes.append(f"  " * depth + "child {\n")
+                tikz_nodes.append(f"    " * depth + "child {\n")
                 
             # Add the concept node itself
-            tikz_nodes.append(f"  " * (depth + 1) + f"\\node[concept] {{{concept_text}}}")
+            tikz_nodes.append(f"    " * (depth + 1) + f"\\node[concept] {{{concept_text}}}")
             
         current_depth = depth
 
@@ -244,14 +330,12 @@ def main():
     # --- Generation ---
     if not input_lines:
         print("Warning: Input is empty. Generating an empty map.", file=sys.stderr)
-        # Generate the boilerplate document without nodes or table
         full_latex_document = LATEX_START_TEMPLATE + '\n' + LATEX_END
     else:
         full_latex_document = generate_tikz_code(input_lines)
 
     # --- Write Output ---
     if args.output == '-':
-        # Write directly to stdout
         sys.stdout.write(full_latex_document)
     else:
         try:
