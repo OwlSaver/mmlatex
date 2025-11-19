@@ -41,24 +41,20 @@ LATEX_START_TEMPLATE = r"""
     text=white,
     % Overall concept color for the central node
     concept color=blue!70!black, 
-    
     % Style definitions for various levels
     every node/.style={concept, minimum width=2.5cm, align=center, font=\large},
-    
     level 1 concept/.append style={
         level distance=4cm, 
         sibling angle=120, 
         concept color=red!70, 
         font=\Large\bfseries
     },
-    
     level 2 concept/.append style={
         level distance=3.5cm, 
         sibling angle=60, 
         concept color=orange!70,
         font=\large\sffamily
     },
-    
     level 3 concept/.append style={
         level distance=3cm, 
         sibling angle=45, 
@@ -72,7 +68,7 @@ LATEX_START_TEMPLATE = r"""
   % Root Node is inserted here via string formatting
 """
 
-LATEX_END = r"""
+TIKZ_END = r"""
   ; % End of the main node structure
 
 \end{tikzpicture}
@@ -80,8 +76,10 @@ LATEX_END = r"""
 \vspace{0.5in}
 \footnotesize
 \textit{This mind map was generated from an indented text file using a Python script.}
+"""
 
-% --- INSERTED TABLE HERE ---
+LATEX_END = r"""
+
 \end{document}
 """
 
@@ -203,6 +201,7 @@ def generate_tikz_code(lines):
         LATEX_START_TEMPLATE + 
         root_node_definition + 
         tikz_code_body + 
+        TIKZ_END +
         latex_table + 
         LATEX_END
     )
