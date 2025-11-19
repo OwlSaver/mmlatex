@@ -1,0 +1,10 @@
+Project Phases
+  Planning
+    Scope Definition
+    Resource Allocation
+  Execution
+    Development
+    Testing
+  Closure
+    Review
+    Sign-off

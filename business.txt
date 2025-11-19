@@ -1,0 +1,39 @@
+Business - A business started by Manu and Michael.	
+	Goals - Why do we want to do this?
+    	Make Money	
+		Keep Busy	
+		Share Knowledge	
+		Build Wealth	
+		Address the age discrimination	
+	Our Skills - What can we do? This is the inside out view.
+    	Data
+        	Data Quality
+			Data Lineage
+			Data Science
+			Data Warehousing
+		Agile Development	
+		AI	Large Document Analysis
+	Customer Needs - What do our potential customers need? This is the outside in view.
+    	Reduce Costs	
+		Increase Sales	
+	Writing - Get our message out.
+    	Good Ideas - I have a draft of this book.
+		Tax / Spend - I have a draft of this book.
+		AI Book - What would this be?
+		Data Book - What would this be?
+		AI Articles - This would be a precursor to our business.
+	Needs
+    	Funding	
+		Marketing	
+		Customers	
+	Ideas
+    	General Consulting	
+		Sub Contracting	
+		Document Analyzer	
+		True Travel	
+		Customer Profitability	
+		Tools for Consultants	
+	Customer Types - Which type of customer does our product focus on?
+    	Consumer - A pure consumer product.
+		Business - A pure business product that is used by a business.
+		Business to Consumer - A product that is used by businesses to sell to or support consumers.
