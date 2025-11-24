@@ -1,7 +1,7 @@
-Project Phases
-    Planning
-        Scope Definition
-        Resource Allocation
+Project Phases - lll
+    Planning - ghgg
+        Scope Definition - gsfgfg fggfgf g fgfsg dfggfdgf fg
+        Resource Allocation - ghd sg g dg g sdgsgf
     Execution
         Development
         Testing
